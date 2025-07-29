@@ -1,0 +1,1 @@
+NACA_Airfoil = "4412"

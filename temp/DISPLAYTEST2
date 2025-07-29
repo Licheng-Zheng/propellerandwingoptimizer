@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import aerosandbox as asb
+from aerosandbox.geometry.airfoil.airfoil_families import get_kulfan_coordinates
+
+def plot_cst_airfoil(params, n_points_per_side=200, show=True):
+    """
+    Reconstructs and plots an airfoil from CST (Kulfan) parameters using AeroSandbox.
+
+    Args:
+        params: Dictionary with 'lower_weights', 'upper_weights',
+                'leading_edge_weight', 'TE_thickness'; N1=0.5, N2=1.0 assumed.
+        n_points_per_side: Points per surface side (upper/lower).
+        show: Whether to call plt.show() after plotting.
+
+    Returns:
+        coords: Nx2 ndarray of reconstructed airfoil.
+    """
+    coords = get_kulfan_coordinates(
+        lower_weights=params['lower_weights'],
+        upper_weights=params['upper_weights'],
+        leading_edge_weight=float(params['leading_edge_weight']),
+        TE_thickness=float(params['TE_thickness']),
+        N1=0.5,
+        N2=1.0,
+        n_points_per_side=n_points_per_side
+    )
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(coords[:, 0], coords[:, 1], '-k')
+    plt.axis("equal")
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.title("Airfoil from CST Parameters")
+    plt.xlabel("x (Chord)")
+    plt.ylabel("y (Thickness)")
+    if show:
+        plt.show()
+
+    return coords
+
+cst_params = {
+    'lower_weights': np.array([-0.16965146, -0.09364138, -0.06345896, -0.0067966,
+                               -0.0902447, 0.02081845, -0.03575216, -0.00223623]),
+    'upper_weights': np.array([0.18109497, 0.21268419, 0.28098503, 0.24864887,
+                               0.2402814, 0.27262843, 0.25776474, 0.27817638]),
+    'leading_edge_weight': np.float64(0.10647339061374254),
+    'TE_thickness': np.float64(0.002572011317150121)
+}
+
+coords = plot_cst_airfoil(cst_params)
