@@ -3,7 +3,7 @@ from objective import compute_result
 from convertion_auxiliary_functions import array_to_kulfan_dict
 import logging 
 
-def run_cma_optimization(evolutionary_strategy, model_name, model_size, alpha, Re, wanted_lists:dict, importance_list:dict): 
+def run_cma_optimization(evolutionary_strategy, model_name, model_size, alpha, Re, epoch, wanted_lists:dict, importance_list:dict): 
 
     # initial_sigma = 0.3 
 
@@ -26,7 +26,7 @@ def run_cma_optimization(evolutionary_strategy, model_name, model_size, alpha, R
 
     candidates_dictionaries = [array_to_kulfan_dict(candidate) for candidate in candidates]
 
-    fitnesses = [compute_result(cst_parameters=candidate_dict, alpha=alpha, Re=Re, model=model_size, wanted_lists=wanted_lists, importance_list=importance_list) for candidate_dict in candidates_dictionaries]
+    fitnesses = [compute_result(cst_parameters=candidate_dict, epoch=epoch, alpha=alpha, Re=Re, model=model_size, wanted_lists=wanted_lists, importance_list=importance_list) for candidate_dict in candidates_dictionaries]
     
     # print("FITNESS LIST", fitnesses)
 
