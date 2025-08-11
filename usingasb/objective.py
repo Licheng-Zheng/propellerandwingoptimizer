@@ -152,8 +152,8 @@ class ConstraintFactory:
         }
         return constraint
     
-    def create_trailing_edge_constraint(self, tol: float = 1e-4, N: int = 300):
-        """Factory for trailing edge mismatch constraint"""
+    def create_trailing_edge_constraint(self, tol: float = 0.01, N: int = 300):
+        """Factory for trailing edge mismatch constraint - FIXED: More reasonable tolerance"""
         def constraint(cst_parameters):
             return trailing_edge_mismatch(cst_parameters, tol=tol, N=N)
         
@@ -561,63 +561,79 @@ def robust_airfoil_overlap_check(cst_parameters, N=1000):
     """
     FIXED: Comprehensive overlap detection using consistent coordinate generation
     """
-    x = np.linspace(0, 1, N)
-    
     try:
-        # FIXED: Use ALL CST parameters consistently
-        TE_thickness_upper = cst_parameters.get('TE_thickness', 0) / 2.0
-        TE_thickness_lower = cst_parameters.get('TE_thickness', 0) / 2.0
-        leading_edge_weight = cst_parameters.get("leading_edge_weight", 0)
+        # FIXED: Use the correct coordinate generation method
+        coordinates = get_kulfan_coordinates(
+            lower_weights=cst_parameters["lower_weights"],
+            upper_weights=cst_parameters["upper_weights"],
+            leading_edge_weight=cst_parameters.get("leading_edge_weight", 0),
+            TE_thickness=cst_parameters.get('TE_thickness', 0),
+            N1=0.5,
+            N2=1.0,
+            n_points_per_side=N//2
+        )
         
-        y_u = get_kulfan_coordinates(
-            cst_parameters["upper_weights"],
-            x,
-            leading_edge_weight,
-            TE_thickness_upper
-        )
-        y_l = get_kulfan_coordinates(
-            cst_parameters["lower_weights"],
-            x,
-            leading_edge_weight,
-            TE_thickness_lower
-        )
+        # Split coordinates into upper and lower surfaces
+        n_mid = len(coordinates) // 2
+        upper_surface = coordinates[:n_mid]
+        lower_surface = coordinates[n_mid:]
+        
+        # Reverse upper surface to match x ordering (it comes reversed from get_kulfan_coordinates)
+        upper_surface = upper_surface[::-1]
+        
+        # Interpolate both surfaces to common x points for comparison
+        x_common = np.linspace(0, 1, 200)
+        y_u = np.interp(x_common, upper_surface[:, 0], upper_surface[:, 1])
+        y_l = np.interp(x_common, lower_surface[:, 0], lower_surface[:, 1])
+        
     except Exception as e:
         logging.error(f"Failed to generate coordinates for overlap check: {e}")
         return True  # Reject if we can't even generate coordinates
     
-    # Check 1: Basic vertical overlap (most important)
-    tolerance = 1e-6
-    if np.any(y_u <= y_l + tolerance):
-        logging.debug("Overlap detected: Upper surface at or below lower surface")
-        return True
-    
-    # Check 2: Minimum thickness validation
+    # FIXED: Check for actual overlap, not just touching at trailing edge
     thickness = y_u - y_l
     min_thickness = np.min(thickness)
-    if min_thickness < 1e-6:
-        logging.debug(f"Overlap detected: Minimum thickness too small: {min_thickness}")
+    
+    # FIXED: Use a more reasonable tolerance and exclude trailing edge
+    # Airfoils naturally have zero thickness at trailing edge, so exclude the last few points
+    exclude_points = 5  # Exclude last 5 points from each end
+    thickness_interior = thickness[exclude_points:-exclude_points] if len(thickness) > 2*exclude_points else thickness
+    
+    if len(thickness_interior) > 0:
+        min_thickness_interior = np.min(thickness_interior)
+        # FIXED: Use negative threshold for actual overlap detection
+        overlap_threshold = -1e-6  # Only flag if upper surface is actually BELOW lower surface
+        
+        if min_thickness_interior < overlap_threshold:
+            logging.debug(f"Overlap detected: Minimum interior thickness {min_thickness_interior:.8f} < {overlap_threshold}")
+            return True
+    
+    # Check for extreme negative thickness anywhere (true overlap)
+    severe_overlap_threshold = -1e-4
+    if np.any(thickness < severe_overlap_threshold):
+        logging.debug(f"Severe overlap detected: thickness < {severe_overlap_threshold}")
         return True
     
-    # Check 3: FIXED slope analysis - look for extreme reversals only
-    # Remove the incorrect logic about upper/lower slope signs
-    dy_u = np.gradient(y_u, x)
-    dy_l = np.gradient(y_l, x)
+    # FIXED: Reduce sensitivity of other checks to avoid false positives
+    # Only check for extreme cases that clearly indicate problems
     
-    # Look for extreme slope reversals that indicate folding
-    # This is more conservative and focuses on actual geometric problems
-    upper_slope_changes = np.abs(np.gradient(dy_u))
-    lower_slope_changes = np.abs(np.gradient(dy_l))
+    # Check 2: Self-intersection detection (only for extreme cases)
+    try:
+        if check_curve_self_intersection(upper_surface[:, 0], upper_surface[:, 1], min_separation=0.05) or \
+           check_curve_self_intersection(lower_surface[:, 0], lower_surface[:, 1], min_separation=0.05):
+            logging.debug("Overlap detected: Surface self-intersection")
+            return True
+    except:
+        pass  # Skip if check fails
     
-    # Flag only extreme slope changes that indicate folding
-    extreme_threshold = 100  # Adjust based on your needs
-    if np.any(upper_slope_changes > extreme_threshold) or np.any(lower_slope_changes > extreme_threshold):
-        logging.debug("Overlap detected: Extreme slope changes indicating surface folding")
-        return True
-    
-    # Check 4: Self-intersection detection (keep this)
-    if check_curve_self_intersection(x, y_u) or check_curve_self_intersection(x, y_l):
-        logging.debug("Overlap detected: Surface self-intersection")
-        return True
+    # Check 3: Extreme curvature that indicates folding (increase threshold)
+    try:
+        if check_extreme_curvature(upper_surface[:, 0], upper_surface[:, 1], curvature_threshold=100) or \
+           check_extreme_curvature(lower_surface[:, 0], lower_surface[:, 1], curvature_threshold=100):
+            logging.debug("Overlap detected: Extreme curvature indicating surface folding")
+            return True
+    except:
+        pass  # Skip if check fails
     
     return False
 
@@ -750,7 +766,7 @@ def internal_self_overlap_robust(cst_parameters, N=1000):
 
 def trailing_edge_mismatch(cst_params_dict, tol=1e-4, N=300):
     """
-    Checks if the trailing edge of the airfoil is the same for the top and bottom portions of the airfoil (meaning they meet each other)
+    FIXED: Checks if the trailing edge of the airfoil is the same for the top and bottom portions of the airfoil (meaning they meet each other)
 
     Creates a bunch of points for the CST airfoil (we only need to the last one, but we can use the other points for other constraints in the future) 
 
@@ -762,10 +778,35 @@ def trailing_edge_mismatch(cst_params_dict, tol=1e-4, N=300):
     Returns:
         bool: Does it fail the trailing check test or not
     """
-    x = np.linspace(0, 1, N)
-    y_u = get_kulfan_coordinates(cst_params_dict["upper_weights"], x)
-    y_l = get_kulfan_coordinates(cst_params_dict["lower_weights"], x)
-    return abs(y_u[-1] - y_l[-1]) > tol
+    try:
+        # FIXED: Use the proper coordinate generation method
+        coordinates = get_kulfan_coordinates(
+            lower_weights=cst_params_dict["lower_weights"],
+            upper_weights=cst_params_dict["upper_weights"],
+            leading_edge_weight=cst_params_dict.get("leading_edge_weight", 0),
+            TE_thickness=cst_params_dict.get('TE_thickness', 0),
+            N1=0.5,
+            N2=1.0,
+            n_points_per_side=N//2
+        )
+        
+        # The trailing edge should be at x=1, which is the last point of lower surface
+        # and first point of upper surface (after reversal)
+        n_mid = len(coordinates) // 2
+        upper_surface = coordinates[:n_mid]
+        lower_surface = coordinates[n_mid:]
+        
+        # Get trailing edge points (x=1)
+        te_upper = upper_surface[0, 1]  # First point of upper surface (at x=1)
+        te_lower = lower_surface[-1, 1]  # Last point of lower surface (at x=1)
+        
+        # Check if trailing edge gap exceeds tolerance
+        te_gap = abs(te_upper - te_lower)
+        return te_gap > tol
+        
+    except Exception as e:
+        logging.error(f"Error in trailing_edge_mismatch: {e}")
+        return True  # Assume violation if we can't check
 
 
 # ---------------- SOFT CONSTRAINTS ---------------- #

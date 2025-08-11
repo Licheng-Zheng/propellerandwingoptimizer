@@ -95,35 +95,41 @@ def plot_cst_airfoil(cst_params, n_points_per_side=200, title="CST Airfoil", sho
     
     # Calculate and display comprehensive geometric information
     try:
-        max_thickness = airfoil.max_thickness()
-        max_thick_loc = airfoil.max_thickness_location()
-        max_camber = airfoil.max_camber()
-        max_camber_loc = airfoil.max_camber_location()
-        
-        # Add thickness and camber visualization
-        x_analysis = np.linspace(0, 1, 100)
+        # FIXED: Try new methods first, fallback to manual calculation
         try:
-            thickness_dist = [airfoil.local_thickness(x) for x in x_analysis]
-            camber_dist = [airfoil.local_camber(x) for x in x_analysis]
+            max_thickness = airfoil.max_thickness()
+            max_thick_loc = airfoil.max_thickness_location()
+            max_camber = airfoil.max_camber()
+            max_camber_loc = airfoil.max_camber_location()
             
-            # Mark maximum thickness location
-            ax_airfoil.axvline(x=max_thick_loc, color='orange', linestyle=':', alpha=0.7, 
-                            label=f'Max Thickness @ x/c={max_thick_loc:.3f}')
+            # Add thickness and camber visualization
+            x_analysis = np.linspace(0, 1, 100)
+            try:
+                thickness_dist = [airfoil.local_thickness(x) for x in x_analysis]
+                camber_dist = [airfoil.local_camber(x) for x in x_analysis]
+                
+                # Mark maximum thickness location
+                ax_airfoil.axvline(x=max_thick_loc, color='orange', linestyle=':', alpha=0.7, 
+                                label=f'Max Thickness @ x/c={max_thick_loc:.3f}')
+                
+                # Mark maximum camber location
+                if abs(max_camber) > 1e-6:  # Only if there's significant camber
+                    ax_airfoil.axvline(x=max_camber_loc, color='purple', linestyle=':', alpha=0.7,
+                                    label=f'Max Camber @ x/c={max_camber_loc:.3f}')
+            except:
+                pass  # Skip if local methods don't work
             
-            # Mark maximum camber location
-            if abs(max_camber) > 1e-6:  # Only if there's significant camber
-                ax_airfoil.axvline(x=max_camber_loc, color='purple', linestyle=':', alpha=0.7,
-                                label=f'Max Camber @ x/c={max_camber_loc:.3f}')
-        except:
-            pass  # Skip if local methods don't work
-        
-        info_text = f'Max Thickness: {max_thickness:.4f} @ x/c = {max_thick_loc:.3f}\n'
-        info_text += f'Max Camber: {max_camber:.4f} @ x/c = {max_camber_loc:.3f}\n'
-        info_text += f'LE Weight: {leading_edge_weight:.4f}\n'
-        info_text += f'TE Thickness: {te_thickness:.6f}'
-        
+            info_text = f'Max Thickness: {max_thickness:.4f} @ x/c = {max_thick_loc:.3f}\n'
+            info_text += f'Max Camber: {max_camber:.4f} @ x/c = {max_camber_loc:.3f}\n'
+            info_text += f'LE Weight: {leading_edge_weight:.4f}\n'
+            info_text += f'TE Thickness: {te_thickness:.6f}'
+            
+        except AttributeError as attr_error:
+            # FIXED: Handle missing methods gracefully
+            raise attr_error  # Re-raise to trigger fallback
+            
     except Exception as e:
-        # Fallback geometric calculations
+        # Fallback geometric calculations for older AeroSandbox versions
         print(f"Using fallback geometry calculations: {e}")
         
         # Calculate thickness distribution manually
@@ -146,6 +152,14 @@ def plot_cst_airfoil(cst_params, n_points_per_side=200, title="CST Airfoil", sho
         max_thick_loc = x_common[np.argmax(thickness)]
         max_camber = camber[np.argmax(np.abs(camber))]
         max_camber_loc = x_common[np.argmax(np.abs(camber))]
+        
+        # Add visualization for fallback calculations
+        ax_airfoil.axvline(x=max_thick_loc, color='orange', linestyle=':', alpha=0.7, 
+                        label=f'Max Thickness @ x/c={max_thick_loc:.3f}')
+        
+        if abs(max_camber) > 1e-6:
+            ax_airfoil.axvline(x=max_camber_loc, color='purple', linestyle=':', alpha=0.7,
+                            label=f'Max Camber @ x/c={max_camber_loc:.3f}')
         
         info_text = f'Max Thickness: {max_thickness:.4f} @ x/c = {max_thick_loc:.3f}\n'
         info_text += f'Max Camber: {max_camber:.4f} @ x/c = {max_camber_loc:.3f}\n'

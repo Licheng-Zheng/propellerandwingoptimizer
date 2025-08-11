@@ -89,21 +89,10 @@ def plot_optimization_results(log_data, save_dir):
     plt.tight_layout()
     plt.savefig(os.path.join(save_dir, 'optimization_summary.png'), dpi=300, bbox_inches='tight')
     plt.show()
-    
-    # Generate individual CMA-ES plots for each optimizer
-    for model_name, es in optimizers:
-        try:
-            plt.figure(figsize=(12, 8))
-            es.logger.plot()
-            plt.suptitle(f'CMA-ES Convergence Details - {model_name}')
-            plt.savefig(os.path.join(save_dir, f'{model_name}_cma_details.png'), dpi=300, bbox_inches='tight')
-            plt.show()
-        except Exception as e:
-            print(f"Could not generate detailed CMA plot for {model_name}: {e}")
 
 def stop_functioning(message: str, **kwargs):
     """
-    Stops the program execution at certain points if the current execution is not satisfactory
+    FIXED: Stops the program execution at certain points if the current execution is not satisfactory
 
     Exits the program if the user does not confirm to continue, preventing wasting computational resources. More logic can be added later to restart the process rather than just ending it all.
 
