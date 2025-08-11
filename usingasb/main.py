@@ -14,7 +14,7 @@ from logging_auxiliary_functions import save_optimization_log, save_intermediate
 import display_auxiliary_functions
 
 # First time using logging because using print is for stupid people (idk how to use this)
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Starting guess (I will refine how this is chosen later) 
 airfoil = asb.Airfoil("naca4412")
@@ -22,6 +22,7 @@ airfoil = asb.Airfoil("naca4412")
 # Convert it into CST parameters 
 starting_guess_kulfan = get_kulfan_parameters(airfoil.coordinates)
 starting_guess_kulfan = kulfan_dict_to_array(starting_guess_kulfan)
+
 logging.debug("Starting CST parameters, does it look okie dokie?", starting_guess_kulfan)
 
 stop_functioning("These are the current starting CST parameters and the drawn airfoil", additional_info_context="CST parameters", additional_info=starting_guess_kulfan, cst_parameters=starting_guess_kulfan)
@@ -38,7 +39,7 @@ upper_bounds = np.full(param_dimension, 1.0)
 
 options = {
     'bounds': [lower_bounds, upper_bounds],  # Ensures the parameters never become too extreme, which would make the airfoil really bad
-    'popsize': 50,                      # Population size (default would be ~15 for 18D)
+    'popsize': 60,                      # Population size (default would be ~15 for 18D)
     'maxiter': 200,                     # Maximum iterations
     'maxfevals': 10000,                 # Maximum function evaluations
     'tolfun': 1e-8,                     # Tolerance for function value changes
@@ -73,7 +74,7 @@ for model_name in model_name:
     }
 
 wanted_list = ["analysis_confidence", "CL", "CD", "CM"]
-importance_list = [0.4, 0.3, 0.2, 0.1]
+importance_list = [0.4, 0.3, -0.2, -0.1]
 
 best_params = None
 
@@ -89,6 +90,7 @@ for epoch in range(max_epochs):
                                             model_size="large", 
                                             alpha=5, 
                                             Re=1e6, 
+                                            epoch=epoch, 
                                             wanted_lists=wanted_list, 
                                             importance_list=importance_list)
         
@@ -110,9 +112,9 @@ for epoch in range(max_epochs):
         
         print(f"{model_name}: Epoch {epoch + 1}, Best: {best_fitness:.6f}, Sigma: {es.sigma:.6f}, Evals: {es.countevals}")
     
-    # Save intermediate results every 10 epochs
-    if (epoch + 1) % 10 == 0:
-        save_intermediate_results(optimization_log, results_dir, epoch + 1)
+    # # Save intermediate results every 10 epochs
+    # if (epoch + 1) % 10 == 0:
+    #     save_intermediate_results(optimization_log, results_dir, epoch + 1)
 
     best_result = es.result.xbest
 
@@ -158,5 +160,3 @@ for model_name, es in optimizers:
 #        0.27262843, 0.25776474, 0.27817638]), 'leading_edge_weight': np.float64(0.10647339061374254), 'TE_thickness': np.float64(0.002572011317150121)}, {'lower_weights': array([-0.68093984, -0.98782294, -0.6950461 , -0.51509534, -0.85793511,
 #         0.67903817,  0.62635203,  0.9287848 ]), 'upper_weights': array([ 0.71138293, -0.50625873, -0.01808301, -0.22555874,  0.66091669,
 #         0.93262115,  0.75631632, -0.40774508]), 'leading_edge_weight': np.float64(0.8245977383605523), 'TE_thickness': np.float64(-0.020606797899721307)}]
-# ❌ Error plotting airfoil 0: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
-# ❌ Error plotting airfoil 1: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
