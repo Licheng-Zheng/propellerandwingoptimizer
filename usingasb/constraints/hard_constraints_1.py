@@ -224,7 +224,8 @@ def robust_airfoil_overlap_check(cst_parameters, N=1000):
            check_curve_self_intersection(lower_surface[:, 0], lower_surface[:, 1], min_separation=0.05):
             logging.debug("Overlap detected: Surface self-intersection")
             return True
-    except:
+    except Exception as e:
+        logging.debug(f"Self-intersection check failed: {e}")
         pass  # Skip if check fails
     
     # Check 3: Extreme curvature that indicates folding (increase threshold)
@@ -233,58 +234,9 @@ def robust_airfoil_overlap_check(cst_parameters, N=1000):
            check_extreme_curvature(lower_surface[:, 0], lower_surface[:, 1], curvature_threshold=100):
             logging.debug("Overlap detected: Extreme curvature indicating surface folding")
             return True
-    except:
-        pass  # Skip if check fails
-    
-    return False
-
-def internal_self_overlap_robust(cst_parameters, N=1000):
-    """
-    Checks for airfoil self-overlap using NeuralFoil functions and a robust slope analysis.
-
-    Args:
-        cst_parameters (dict): The CST parameters of the airfoil.
-        N (int, optional): Number of points to sample for the check. A higher N
-                           provides a more accurate check. Defaults to 1000.
-    """
-
-    x = np.linspace(0, 1, N)
-    
-    # Split the trailing edge thickness between the upper and lower surfaces
-    TE_thickness_upper = cst_parameters['TE_thickness'] / 2.0
-    TE_thickness_lower = cst_parameters['TE_thickness'] / 2.0
-
-    # Get the coordinates using the NeuralFoil function
-    y_u = get_kulfan_coordinates(
-        cst_parameters["upper_weights"],
-        x,
-        cst_parameters["leading_edge_weight"],
-        TE_thickness_upper
-    )
-    y_l = get_kulfan_coordinates(
-        cst_parameters["lower_weights"],
-        x,
-        cst_parameters["leading_edge_weight"],
-        TE_thickness_lower
-    )
-
-    # Check 1: Direct y-coordinate overlap
-    if np.any(y_u < y_l):
-        print("Overlap detected: Upper surface is below the lower surface.")
-        return True
-
-    # Check 2: Slope analysis for internal overlap
-    upper_slope = np.gradient(y_u, x)
-    lower_slope = np.gradient(y_l, x)
-
-    # An airfoil's upper slope should be non-positive, and lower slope should be non-negative.
-    # A positive upper slope or a negative lower slope indicates a reversal in the shape,
-    # which is a strong sign of an internal overlap.
-    if np.any(upper_slope > 0) or np.any(lower_slope < 0):
-        print("Overlap detected: Surface slopes indicate an invalid shape.")
-        return True
-
-    return False
+    except Exception as e:
+        logging.debug(f"Curvature check failed: {e}")
+        pass  # Skip if check fails    
 
 def trailing_edge_mismatch(cst_params_dict, tol=1e-4, N=300):
     """

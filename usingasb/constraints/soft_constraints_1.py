@@ -4,7 +4,7 @@ import numpy as np
 import logging
 from typing import List, Callable, Dict, Any, Tuple
 
-def internal_minimum_thickness_constraint(cst_parameters, minimum_thickness=0.02, check_up_to_x=0.9, N=200):
+def internal_minimum_thickness_constraint(cst_parameters, minimum_thickness=0.02, start_check_at_x=0.1, check_up_to_x=0.9, N=200):
     """
     Soft constraint that penalizes airfoils if they are thinner than a minimum threshold,
     but only checks up to a certain point on the wing to avoid penalizing trailing edge closure.
@@ -21,7 +21,7 @@ def internal_minimum_thickness_constraint(cst_parameters, minimum_thickness=0.02
     
     try:
         # Generate points only up to the specified x-coordinate
-        x = np.linspace(0, check_up_to_x, N)
+        x = np.linspace(start_check_at_x, check_up_to_x, N)
         
         # Split trailing edge thickness between upper and lower surfaces
         TE_thickness_upper = cst_parameters.get('TE_thickness', 0) / 2.0

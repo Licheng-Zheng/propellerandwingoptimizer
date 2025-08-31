@@ -4,6 +4,11 @@ Diagnostic script to test constraint functions and identify optimization issues
 """
 
 import numpy as np
+import os
+import matplotlib
+import copy
+if os.environ.get("DISPLAY", "") == "" and os.environ.get("MPLBACKEND", "") == "":
+    matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from aerosandbox.geometry.airfoil.airfoil_families import get_kulfan_parameters, get_kulfan_coordinates
 import aerosandbox as asb

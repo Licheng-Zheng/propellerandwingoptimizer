@@ -12,6 +12,7 @@ from datetime import datetime
 import logging 
 from logging_auxiliary_functions import save_optimization_log, save_intermediate_results, plot_optimization_results, stop_functioning
 import display_auxiliary_functions
+from optimal_wing_state import capture_and_save_optimal_state
 
 # First time using logging because using print is for stupid people (idk how to use this)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,7 +24,7 @@ airfoil = asb.Airfoil("naca4412")
 starting_guess_kulfan = get_kulfan_parameters(airfoil.coordinates)
 starting_guess_kulfan = kulfan_dict_to_array(starting_guess_kulfan)
 
-logging.debug("Starting CST parameters, does it look okie dokie?", starting_guess_kulfan)
+logging.debug("Starting CST parameters, does it look okie dokie? %s", starting_guess_kulfan)
 
 stop_functioning("These are the current starting CST parameters and the drawn airfoil", additional_info_context="CST parameters", additional_info=starting_guess_kulfan, cst_parameters=starting_guess_kulfan)
 
@@ -53,8 +54,9 @@ model_name = ["cmaes_1"]
 optimizers = []
 
 # APPARENTLY I need to do this for proper logging
+results_base_dir = r"C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDesign\usingasb\Optimization Results"
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f"optimization_results_{timestamp}"
+results_dir = os.path.join(results_base_dir, f"optimization_results_{timestamp}")
 os.makedirs(results_dir, exist_ok=True)
 
 optimization_log = {}
@@ -144,19 +146,52 @@ for model_name, es in optimizers:
     print(f"Final sigma: {es.sigma:.6f}")
     print(f"Best parameters shape: {es.result.xbest.shape}")
     
+    # Prepare optimization configuration for saving
+    optimization_config = {
+        'initial_sigma': initial_sigma,
+        'max_epochs': max_epochs,
+        'param_dimension': param_dimension,
+        'bounds': {
+            'lower': lower_bounds.tolist(),
+            'upper': upper_bounds.tolist()
+        },
+        'cma_options': options.copy(),
+        'population_size': options['popsize']
+    }
+    
+    # Prepare optimization conditions
+    optimization_conditions = {
+        'alpha': 5,  # Your alpha value
+        'Re': 1e6,   # Your Re value
+        'model_size': "large",
+        'wanted_lists': wanted_list,
+        'importance_list': importance_list
+    }
+    
+    # === CAPTURE AND SAVE COMPLETE STATE ===
+    json_path, pickle_path, cst_path = capture_and_save_optimal_state(
+        es=es,
+        optimization_conditions=optimization_conditions,
+        optimization_config=optimization_config,
+        starting_guess=starting_guess_kulfan,
+        optimization_log=optimization_log,
+        results_dir=results_dir,
+        model_name=model_name
+    )
+    
+    # Store paths for easy access
+    print(f"\n📁 Files saved:")
+    print(f"   Complete state (JSON): {json_path}")
+    print(f"   Complete state (Pickle): {pickle_path}")
+    print(f"   CST only: {cst_path}")
+    print(f"Best fitness: {es.result.fbest:.8f}")
+    print(f"Total evaluations: {es.countevals}")
+    print(f"Final sigma: {es.sigma:.6f}")
+    print(f"Best parameters shape: {es.result.xbest.shape}")
+    
     # Save final best parameters
     np.savetxt(
         os.path.join(results_dir, f"{model_name}_best_parameters.txt"), 
         es.result.xbest,
         header=f"Best CST parameters from {model_name} optimization\nFinal fitness: {es.result.fbest}"
     )
-
-
-# {'lower_weights': array([-0.68093984, -0.98782294, -0.6950461 , -0.51509534, -0.85793511,
-#         0.67903817,  0.62635203,  0.9287848 ]), 'upper_weights': array([ 0.71138293, -0.50625873, -0.01808301, -0.22555874,  0.66091669,
-#         0.93262115,  0.75631632, -0.40774508]), 'leading_edge_weight': np.float64(0.8245977383605523), 'TE_thickness': np.float64(-0.020606797899721307)}
-# [{'lower_weights': array([-0.16965146, -0.09364138, -0.06345896, -0.0067966 , -0.0902447 ,
-#         0.02081845, -0.03575216, -0.00223623]), 'upper_weights': array([0.18109497, 0.21268419, 0.28098503, 0.24864887, 0.2402814 ,
-#        0.27262843, 0.25776474, 0.27817638]), 'leading_edge_weight': np.float64(0.10647339061374254), 'TE_thickness': np.float64(0.002572011317150121)}, {'lower_weights': array([-0.68093984, -0.98782294, -0.6950461 , -0.51509534, -0.85793511,
-#         0.67903817,  0.62635203,  0.9287848 ]), 'upper_weights': array([ 0.71138293, -0.50625873, -0.01808301, -0.22555874,  0.66091669,
-#         0.93262115,  0.75631632, -0.40774508]), 'leading_edge_weight': np.float64(0.8245977383605523), 'TE_thickness': np.float64(-0.020606797899721307)}]

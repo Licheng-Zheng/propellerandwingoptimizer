@@ -3,7 +3,7 @@ from objective import compute_result
 from convertion_auxiliary_functions import array_to_kulfan_dict
 import logging 
 
-def run_cma_optimization(evolutionary_strategy, model_name, model_size, alpha, Re, epoch, wanted_lists:dict, importance_list:dict): 
+def run_cma_optimization(evolutionary_strategy, model_name, model_size, alpha, Re, wanted_lists:dict, importance_list:dict, epoch=None): 
 
     candidates = evolutionary_strategy.ask()
 
