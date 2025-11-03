@@ -18,22 +18,7 @@ from logging_auxiliary_functions import save_optimization_log, save_intermediate
 import display_auxiliary_functions
 from optimal_wing_state import capture_and_save_optimal_state
 
-# -----------------------------------------------------------------------------
-# Configuration
-# -----------------------------------------------------------------------------
-
-# Global optimization settings (shared by all processes)
-INITIAL_SIGMA = 0.3
-MAX_EPOCHS = 100
-WANTED_LIST = ["analysis_confidence", "CL", "CD", "CM"]
-IMPORTANCE_LIST = [0.4, 0.3, -0.2, -0.1]
-ALPHA = 5
-RE = 1e6
-MODEL_SIZE = "large"
-
-# Base results directory
-RESULTS_BASE_DIR = r"C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDesign\usingasb\Optimization Results"
-
+from PARAMETERS import INITIAL_SIGMA, MAX_EPOCHS, WANTED_LIST, IMPORTANCE_LIST, ALPHA, RE, MODEL_SIZE, RESULTS_BASE_DIR, starting_airfoil
 
 # -----------------------------------------------------------------------------
 # Helper builders
@@ -41,14 +26,14 @@ RESULTS_BASE_DIR = r"C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDe
 
 def build_starting_guess() -> np.ndarray:
     """Build the starting CST parameter array using a default airfoil."""
-    airfoil = asb.Airfoil("naca4412")
+    airfoil = asb.Airfoil(starting_airfoil)
     starting_guess_kulfan = get_kulfan_parameters(airfoil.coordinates)
     starting_guess_kulfan = kulfan_dict_to_array(starting_guess_kulfan)
     logging.debug("Starting CST parameters: %s", starting_guess_kulfan)
     return starting_guess_kulfan
 
 
-def build_cma_options(param_dimension: int, initial_sigma: float, seed: int) -> dict:
+def build_cma_options(param_dimension: int, initial_sigma: float, seed:int = None) -> dict:
     lower_bounds = np.full(param_dimension, -1.0)
     upper_bounds = np.full(param_dimension, 1.0)
 
@@ -66,11 +51,7 @@ def build_cma_options(param_dimension: int, initial_sigma: float, seed: int) -> 
     }
     return options
 
-
-# -----------------------------------------------------------------------------
-# Core single-run optimization (safe for multiprocessing)
-# -----------------------------------------------------------------------------
-
+# Core single-run optimization does not block multiprocessing
 def run_single_cma(run_id: int,
                    parent_results_dir: str,
                    interactive: bool = False,
@@ -89,7 +70,7 @@ def run_single_cma(run_id: int,
     logging.basicConfig(level=logging.INFO, format=f'[PID {os.getpid()}] %(asctime)s - %(levelname)s - %(message)s')
 
     # Prepare results directory for this run
-    model_name = f"cmaes_{run_id}"
+    model_name  = f"cmaes_{run_id}"
     results_dir = os.path.join(parent_results_dir, model_name)
     os.makedirs(results_dir, exist_ok=True)
 
@@ -324,4 +305,6 @@ if __name__ == '__main__':
         pass
 
     # Default: run multiple instances based on system resources
-    run_multiprocess_optimizations(num_instances=None, interactive_first=False)
+    run_multiprocess_optimizations(num_instances=None, interactive_first=True)
+
+

@@ -1,6 +1,6 @@
 import numpy as np
 
-def kulfan_dict_to_array(kulfan_dict):
+def kulfan_dict_to_array(kulfan_dict) -> np.ndarray:
     """
     Converts a Kulfan parameter dictionary to a 1D numpy array.
     """
