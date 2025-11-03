@@ -5,9 +5,9 @@ I have implemented multiprocessing for the optimization of airfoils, I am going 
 
 This will be a pretty quick fix, but the current optimization algorithm is creating airfoils that are physically impossible, but that's just because I haven't implemented the required constraints. AI wins again! Here is an example of a wing that is made to optimize lift (among other things, but mostly lift) 
 ![Really wonky wing](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/10189384a29f27416ccd3d1377d2e7a127288202/media/wonkywing.png)
-It should acheive pretty great lift, but is likely sacrificing just about everything else (very forward transition boundary, pretty high drag(to be expected because I specified a very low speed), literally not possible construction (pinches to 0)). But nothing that can't be fixed in one 240 hour lock-in session. 
+It should acheive pretty great lift, but is likely sacrificing just about everything else (very forward transition boundary (unstable, bad for efficiency), pretty high drag (to be expected because I specified a very low speed), literally not possible construction (pinches to 0)). But nothing that can't be fixed in one 240 hour lock-in session. All the issues aren't really issues with the methodology, but more because the stupid user did not implement enough constraints to make the wings relastic and viable. 
 
-![Progress Diagram](media\progressdiagram.png)
+![Progress Diagram](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/e7c3d1151899df6fe70e1def9bad8f764783f5ca/media/progressdiagram.png)
 
 #### Goal 
 I want to provide the program a bunch of different parameters and conditions that the wing/propeller will be working within, and create the optimal wing/propeller design for those parameters. 
