@@ -3,6 +3,12 @@
 #### Current Status
 I have implemented multiprocessing for the optimization of airfoils, I am going to start creating a caller to run optimization at different conditions that the wing will experience in, and begin chaining together the different airfoils to create a wing. 
 
+This will be a pretty quick fix, but the current optimization algorithm is creating airfoils that are physically impossible, but that's just because I haven't implemented the required constraints. AI wins again! Here is an example of a wing that is made to optimize lift (among other things, but mostly lift) 
+![Really wonky wing](image-1.png)
+It should acheive pretty great lift, but is likely sacrificing just about everything else (very forward transition boundary, pretty high drag(to be expected because I specified a very low speed), literally not possible construction (pinches to 0)). But nothing that can't be fixed in one 240 hour lock-in session. 
+
+![Progress Diagram](image.png)
+
 #### Goal 
 I want to provide the program a bunch of different parameters and conditions that the wing/propeller will be working within, and create the optimal wing/propeller design for those parameters. 
 
