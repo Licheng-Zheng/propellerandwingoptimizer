@@ -6,7 +6,6 @@ import multiprocessing as mp
 from multiprocessing.queues import Queue as MPQueue
 
 import numpy as np
-import matplotlib.pyplot as plt
 import aerosandbox as asb
 from aerosandbox.geometry.airfoil.airfoil_families import get_kulfan_parameters
 import cma
@@ -19,6 +18,10 @@ import display_auxiliary_functions
 from optimal_wing_state import capture_and_save_optimal_state
 
 from PARAMETERS import INITIAL_SIGMA, MAX_EPOCHS, WANTED_LIST, IMPORTANCE_LIST, ALPHA, RE, MODEL_SIZE, RESULTS_BASE_DIR, starting_airfoil
+import math
+
+# Minimum number of epochs to run before allowing termination checks
+MIN_EPOCHS_BEFORE_STOP = 50
 
 # -----------------------------------------------------------------------------
 # Helper builders
@@ -33,21 +36,26 @@ def build_starting_guess() -> np.ndarray:
     return starting_guess_kulfan
 
 
-def build_cma_options(param_dimension: int, initial_sigma: float, seed:int = None) -> dict:
+def build_cma_options(param_dimension: int, initial_sigma: float) -> dict:
     lower_bounds = np.full(param_dimension, -1.0)
     upper_bounds = np.full(param_dimension, 1.0)
 
+    default_popsize = max(4 + int(3 * math.log(param_dimension)), 20)  # keep at least 20
     options = {
         'bounds': [lower_bounds, upper_bounds],
-        'popsize': 60,
-        'maxiter': 200,
-        'maxfevals': 10000,
-        'tolfun': 1e-8,
-        'tolx': 1e-10,
-        'verb_disp': 10,
+        'popsize': default_popsize,
+        'maxiter': 200,             # or tune down/up based on time
+        'maxfevals': 20000,         # budget for evaluations
+        # Relax early-stopping criteria to allow exploration
+        # Set tolfunhist and tolfun to 0 to effectively disable these criteria
+        'tolfunhist': 0,
+        'tolfun': 0,
+        # Disable termination due to flat fitness landscape during early phases
+        'tolflatfitness': 0,
+        'tolx': 1e-8,
+        'verb_disp': 1,
         'verb_log': 1,
-        'CMA_stds': [initial_sigma] * param_dimension,
-        'seed': seed,
+        'CMA_stds': [initial_sigma] * param_dimension
     }
     return options
 
@@ -91,7 +99,7 @@ def run_single_cma(run_id: int,
 
     # Set up CMA-ES options
     param_dimension = len(starting_guess_kulfan)
-    options = build_cma_options(param_dimension, INITIAL_SIGMA, seed=12345 + run_id)
+    options = build_cma_options(param_dimension, INITIAL_SIGMA)
 
     # Instantiate CMA-ES
     strategy = cma.CMAEvolutionStrategy(starting_guess_kulfan, INITIAL_SIGMA, options)
@@ -109,9 +117,10 @@ def run_single_cma(run_id: int,
     }
 
     # Optimization loop
-    best_result = None
+    best_result: float = None
     for epoch in range(MAX_EPOCHS):
-        if strategy.stop():
+        # Check termination before doing work in this epoch
+        if epoch >= MIN_EPOCHS_BEFORE_STOP and strategy.stop():
             logging.info(f"{model_name}: Early stop at epoch {epoch + 1}")
             break
 
@@ -125,6 +134,29 @@ def run_single_cma(run_id: int,
             wanted_lists=WANTED_LIST,
             importance_list=IMPORTANCE_LIST,
         )
+
+        # After the epoch evaluation, check termination again to allow
+        # immediate early termination when conditions are met during this epoch
+        if epoch >= MIN_EPOCHS_BEFORE_STOP and strategy.stop():
+            # Still record this epoch's best result for accurate logging
+            optimization_log[model_name]['epochs'].append(epoch + 1)
+            optimization_log[model_name]['best_fitness_per_epoch'].append(best_fitness)
+            optimization_log[model_name]['sigma_per_epoch'].append(strategy.sigma)
+            optimization_log[model_name]['best_parameters_per_epoch'].append(strategy.result.xbest.copy())
+
+            convergence_info = {
+                'iteration': len(optimization_log[model_name]['epochs']),
+                'evaluations': strategy.countevals,
+                'best_fitness': float(strategy.result.fbest) if strategy.result.fbest is not None else float(best_fitness),
+                'sigma': float(strategy.sigma),
+                'condition_number': float(strategy.D.max() / strategy.D.min()) if hasattr(strategy, 'D') else None
+            }
+            optimization_log[model_name]['convergence_data'].append(convergence_info)
+
+            print(f"{model_name}: Epoch {epoch + 1}, Best: {best_fitness:.6f}, Sigma: {strategy.sigma:.6f}, Evals: {strategy.countevals}")
+            best_result = strategy.result.xbest
+            logging.info(f"{model_name}: Early termination triggered after epoch {epoch + 1}")
+            break
 
         # Log epoch data
         optimization_log[model_name]['epochs'].append(epoch + 1)
@@ -305,6 +337,6 @@ if __name__ == '__main__':
         pass
 
     # Default: run multiple instances based on system resources
-    run_multiprocess_optimizations(num_instances=None, interactive_first=True)
+    run_multiprocess_optimizations(num_instances=None, interactive_first=False)
 
 
