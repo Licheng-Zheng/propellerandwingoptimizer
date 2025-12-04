@@ -7,6 +7,7 @@ This will be a pretty quick fix, but the current optimization algorithm is creat
 ![Really wonky wing](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/10189384a29f27416ccd3d1377d2e7a127288202/media/wonkywing.png)
 It should acheive pretty great lift, but is likely sacrificing just about everything else (very forward transition boundary (unstable, bad for efficiency), pretty high drag (to be expected because I specified a very low speed), literally not possible construction (pinches to 0)). But nothing that can't be fixed in one 240 hour lock-in session. All the issues aren't really issues with the methodology, but more because the stupid user did not implement enough constraints to make the wings relastic and viable. 
 
+My Progress diagram, can't really show you it because then you can't see the entire thing and the image export is not very good :( Maybe I can add a video in the future....
 ![Progress Diagram](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/e7c3d1151899df6fe70e1def9bad8f764783f5ca/media/progressdiagram.png)
 
 #### Goal 
