@@ -117,7 +117,7 @@ def run_single_cma(run_id: int,
     }
 
     # Optimization loop
-    best_result: float = None
+    best_result: Optional[float] = None
     for epoch in range(MAX_EPOCHS):
         # Check termination before doing work in this epoch
         if epoch >= MIN_EPOCHS_BEFORE_STOP and strategy.stop():
