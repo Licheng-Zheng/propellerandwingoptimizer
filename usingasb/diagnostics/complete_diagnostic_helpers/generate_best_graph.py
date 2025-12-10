@@ -1,5 +1,4 @@
-import os # Fpr saving and loading the files
-import json # Because the data that I'm using is a json 
+import os # For saving and loading the filesimport json # Because the data that I'm using is a json 
 from pathlib import Path
 import sys
 import shutil # Delete the files that are already in the folder 
@@ -28,11 +27,9 @@ def generate_best_graphs():
         print(f"Info directory does not exist: {source_dir}")
         return
     
-    # Don't need it I think but leaving it just in case 
-    # output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Glob is used to match the files ending in .json in the source directory. It finds every json file in the directory
-    # I have no clue what glob does.
     for json_file in sorted(source_dir.glob("*.json")):
         target_file = output_dir / f"{json_file.stem}.png"
         plot_best_fitness(json_file, save_plot=True, save_path=target_file)
@@ -54,7 +51,7 @@ def generate_sigma_graphs():
         plot_sigma(json_file, save_plot=True, save_path=target_file)
     
     print(f"Finished generating sigma graphs. Saved to {output_dir}")
-    
+
 def generate_all_graphs():
     generate_best_graphs()
     generate_sigma_graphs()

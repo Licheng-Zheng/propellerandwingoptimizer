@@ -15,7 +15,7 @@
 - Python **3.10+** 
 - Ability to compile/install CasADi (bundled with requirements; Windows wheels available).
 - Git, virtual environment tooling (venv, Conda, etc.).
-- Optional: Modal account & CLI auth if using `using_modal.py` (its just creating an environment variable).
+- Optional: Modal account & CLI auth if using `using_modal.py` (it's just creating an environment variable).
 
 ### Installation
 1. Clone the repository.
@@ -25,7 +25,7 @@
    pip install -r usingasb/requirements.txt
    ```
 4. NeuralFoil may download model weights on first use—ensure network access.
-5. **Update `RESULTS_BASE_DIR`** in `usingasb/PARAMETERS.py` to a valid path on your machine before running.
+5. **Update `RESULTS_BASE_DIR`** in `usingasb/PARAMETERS.py` to a valid path on your machine before running (It should work now because I changed it to a relative path, but until someone tries using it, I guess I'll never know).
 
 ### Basic Usage
 - Run a multi-process optimization (default half the cores, max 4):

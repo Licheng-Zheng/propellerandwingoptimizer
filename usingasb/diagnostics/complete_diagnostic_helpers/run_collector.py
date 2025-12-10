@@ -2,7 +2,7 @@ import os
 import modal
 import shutil
 
-output_directory = r"usingasb\diagnostics\Modal_Optimization"
+output_directory = os.path.join("usingasb", "diagnostics", "Modal_Optimization")
 def clear_folder(folder_path):
     if os.path.exists(folder_path):
         for filename in os.listdir(folder_path):
@@ -21,7 +21,6 @@ app = modal.App("propellerdesign-cmaes")
 vol = modal.Volume.from_name("propeller-results-vol")
 
 def download_results_local(download_folder:str):
-    output_directory = os.path.join("usingasb", "diagnostics", "Modal_Optimization")
     os.makedirs(output_directory, exist_ok=True)
 
     root_folder = download_folder

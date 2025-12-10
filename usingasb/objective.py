@@ -310,7 +310,7 @@ class ConstraintEvaluator:
                 if result == True:
                     total_penalty += 0.4
                     
-                    # SWITCHING LOGIC FOR HARD CONSTRAINTS: ADD 0.5 TO PENALTY INSTEAD OF BREAK
+                    # SWITCHING LOGIC FOR HARD CONSTRAINTS: ADD 0.4 TO PENALTY INSTEAD OF BREAK
                     #hard_violation = True
                     # # break
             except Exception as e:

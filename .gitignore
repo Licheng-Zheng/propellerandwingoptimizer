@@ -5,6 +5,7 @@ prop/*
 computation/*
 settings.json
 usingasb/diagnostics/Modal_Optimization/*
+settings.json
 
 # Some of the things that don't work yet
 usingasb/diagnostics/collect_all.py
