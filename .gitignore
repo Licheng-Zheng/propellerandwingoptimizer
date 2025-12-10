@@ -3,3 +3,13 @@ temp/*
 test_modal.py
 prop/*
 computation/*
+settings.json
+usingasb/diagnostics/Modal_Optimization/*
+
+# Some of the things that don't work yet
+usingasb/diagnostics/collect_all.py
+# usingasb/diagnostics/complete_diagnostic_helpers/* # I think it works??
+
+# Stuff you don't get to see eheheheh (its so my github doesn't take 30 years to push)
+usingasb/diagnostics/Modal_Best/*
+usingasb/diagnostics/Modal_Sigma/*

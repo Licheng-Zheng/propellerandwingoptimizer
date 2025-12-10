@@ -308,8 +308,11 @@ class ConstraintEvaluator:
                 # If the result of the function is true, a hard constraint has been violated 
                 # and more computation is not required
                 if result == True:
-                    hard_violation = True
-                    break
+                    total_penalty += 0.4
+                    
+                    # SWITCHING LOGIC FOR HARD CONSTRAINTS: ADD 0.5 TO PENALTY INSTEAD OF BREAK
+                    #hard_violation = True
+                    # # break
             except Exception as e:
                 constraint_name = getattr(constraint, 'metadata', {}).get('name', 'unknown')
                 logging.error(f"Error in hard constraint {constraint_name}: {e}")

@@ -40,22 +40,23 @@ def build_cma_options(param_dimension: int, initial_sigma: float) -> dict:
     lower_bounds = np.full(param_dimension, -1.0)
     upper_bounds = np.full(param_dimension, 1.0)
 
-    default_popsize = max(4 + int(3 * math.log(param_dimension)), 20)  # keep at least 20
+    default_popsize = max(4 + int(3 * math.log(param_dimension)), 40)  # keep at least 20
     options = {
         'bounds': [lower_bounds, upper_bounds],
-        'popsize': default_popsize,
-        'maxiter': 200,             # or tune down/up based on time
-        'maxfevals': 20000,         # budget for evaluations
+        'popsize': int(default_popsize * 1.5),
+        'maxiter': 500,             # or tune down/up based on time
+        'maxfevals': 50000,         # budget for evaluations
         # Relax early-stopping criteria to allow exploration
         # Set tolfunhist and tolfun to 0 to effectively disable these criteria
-        'tolfunhist': 0,
-        'tolfun': 0,
+        'tolfunhist': 1e-2,
+        'tolfun': 1e-4,
         # Disable termination due to flat fitness landscape during early phases
-        'tolflatfitness': 0,
+        'tolflatfitness': 1e4,
         'tolx': 1e-8,
         'verb_disp': 1,
         'verb_log': 1,
-        'CMA_stds': [initial_sigma] * param_dimension
+        'CMA_stds': [initial_sigma] * param_dimension,
+        'max_epochs': 100
     }
     return options
 
