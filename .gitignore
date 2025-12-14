@@ -14,3 +14,7 @@ usingasb/diagnostics/collect_all.py
 # Stuff you don't get to see eheheheh (its so my github doesn't take 30 years to push)
 usingasb/diagnostics/Modal_Best/*
 usingasb/diagnostics/Modal_Sigma/*
+usingasb/diagnostics/Modal_Display_Info/*
+usingasb/diagnostics/Modal_Display/*
+
+testing.py

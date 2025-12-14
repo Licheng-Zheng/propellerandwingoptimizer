@@ -9,7 +9,8 @@ from constraints.hard_constraints_1 import (robust_airfoil_overlap_check,
                                             trailing_edge_mismatch)
 from constraints.soft_constraints_1 import (internal_minimum_thickness_constraint, 
                                             internal_lift_coefficient_minimum, 
-                                            internal_drag_coefficient_maximum)
+                                            internal_drag_coefficient_maximum, 
+                                            internal_slope_smoothness_constraint)
 
 logging.basicConfig(level=logging.INFO) 
 
@@ -218,6 +219,17 @@ class ConstraintFactory:
             'maximum': maximum,
             'use_reward': use_reward,
             'current_value': current_drag
+        }
+        return constraint
+    
+    def create_internal_smoothness_constraint(self): 
+        """Factory for internal slope smoothness constraint"""
+        def constraint(cst_parameters):
+            return internal_slope_smoothness_constraint(cst_parameters)
+        
+        constraint.metadata = {
+            'type': 'soft',
+            'name': 'internal_slope_smoothness'
         }
         return constraint
     

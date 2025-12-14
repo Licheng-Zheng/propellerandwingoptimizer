@@ -94,3 +94,69 @@ def internal_drag_coefficient_maximum(airfoil_drag, maximum=0.1, use_reward=True
     if airfoil_drag > maximum:
         return airfoil_drag - maximum  # Return the difference as a penalty
     return 0
+
+# ... existing code ...
+
+def internal_slope_smoothness_constraint(
+    cst_parameters,
+    x_start=0.05,
+    x_end=0.95,
+    num_points=200,
+    max_delta_slope=0.25,
+    p_norm=2.0,
+):
+    """
+    Soft constraint that penalizes rapid changes in surface slope between x_start and x_end.
+
+    Args:
+        cst_parameters (dict): CST parameter set describing the airfoil.
+        x_start (float, optional): Lower bound of the x-range to enforce smoothness (0–1 chord fraction). Defaults to 0.05.
+        x_end (float, optional): Upper bound of the x-range to enforce smoothness (0–1 chord fraction). Defaults to 0.95.
+        num_points (int, optional): Number of samples used to evaluate slopes. Defaults to 200.
+        max_delta_slope (float, optional): Allowed absolute change in slope between neighboring segments. Defaults to 0.25.
+        p_norm (float, optional): Exponent for aggregating violations (use 1 for L1, 2 for RMS, np.inf for max). Defaults to 2.0.
+
+    Returns:
+        float: Penalty value (0 if smoothness is within tolerance, positive otherwise).
+    """
+    if not (0.0 <= x_start < x_end <= 1.0):
+        raise ValueError("x_start and x_end must satisfy 0.0 <= x_start < x_end <= 1.0")
+
+    x = np.linspace(x_start, x_end, num_points)
+
+    te_half = cst_parameters.get("TE_thickness", 0.0) / 2.0
+    le_weight = cst_parameters.get("leading_edge_weight", 0.0)
+
+    y_upper = get_kulfan_coordinates(
+        cst_parameters["upper_weights"],
+        x,
+        le_weight,
+        te_half,
+    )
+    y_lower = get_kulfan_coordinates(
+        cst_parameters["lower_weights"],
+        x,
+        le_weight,
+        te_half,
+    )
+
+    dx = np.diff(x)
+    slope_upper = np.diff(y_upper) / dx
+    slope_lower = np.diff(y_lower) / dx
+
+    delta_slope_upper = np.abs(np.diff(slope_upper))
+    delta_slope_lower = np.abs(np.diff(slope_lower))
+
+    violations = np.concatenate([
+        np.clip(delta_slope_upper - max_delta_slope, a_min=0.0, a_max=None),
+        np.clip(delta_slope_lower - max_delta_slope, a_min=0.0, a_max=None),
+    ])
+
+    if violations.size == 0:
+        return 0.0
+
+    if np.isinf(p_norm):
+        return np.max(violations)
+
+    return float(np.power(np.mean(np.power(violations, p_norm)), 1.0 / p_norm))
+

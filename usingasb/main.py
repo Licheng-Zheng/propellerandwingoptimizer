@@ -57,7 +57,6 @@ def build_cma_options(param_dimension: int, initial_sigma: float) -> dict:
         'verb_disp': 1,
         'verb_log': 1,
         'CMA_stds': [initial_sigma] * param_dimension,
-        'max_epochs': 100
     }
     return options
 
