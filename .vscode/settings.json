@@ -1,4 +1,4 @@
 {
-    "codium.codeCompletion.enable": true,
+    "codium.codeCompletion.enable": false,
     "CodeGPT.apiKey": "OpenAI"
 }

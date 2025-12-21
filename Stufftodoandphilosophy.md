@@ -1,3 +1,5 @@
+This was my original readme, but it strayed a bit too far, so I just put it in here and wrote a new Read Me
+
 ## Propeller and Wing Optimizer
 
 #### Current Status
@@ -15,18 +17,6 @@ I want to provide the program a bunch of different parameters and conditions tha
 
 ## Motivation
 This started as an attempt to build a quiet, efficient propeller for a small air cooler for a telescope (then it got more and more interesting so I'm expanding the project now to include (hopefully) more functionality) The project explores whether automated optimization can produce high-efficiency propellers and wings.
-
-### Installation Instructions
-If you are an industry professional wanting to use this tool, please do not use this tool. If I have to get on a plane optimized with this program I am getting off the plane.
-Not sure why anyone would want to use this thing, but if you do, here are the hopefully clear instructions:
-1. Clone the repository from Github, you can use the following command: 'gh repo clone Licheng-Zheng/propellerandwingoptimizer' in the git bash
-2. Navigate to the project directory, currently, only the 'usingasb' folder is complete and usable
-3. Install the required dependencies, you can use the following command: 'pip install -r requirements.txt'
-- You should probably create this under a virtual environment because it is a pretty large download. This gets you all the required libraries for the project. 
-4. Go into main.py and run it, and that's it! It will use your local machine to optimize the airfoil. 
-5. If you want to use modal for faster acceleration, go into the using_modal.py file in the root directory (I couldn't put it into the usingasb file because then the file searching system is a lot weirder), import modal in terminal, set an environment variable with your API key (or just set it in the file itself and make sure you don't push it to somewhere public) and tada! It should run. 
-
-
 ### Project Design 
 **Input Formatting**
 Wing 
@@ -54,3 +44,34 @@ Wing and Propeller - I'm going to try to create a BEMT (I think it stands for bl
 
 ### Next Update Roadmap 
 I'm going to delete this section when I'm complete the items in it, this is just so I know what I need to work on as well
+
+#### main.py
+- [ ] Dedicated class that runs the optimization, separating the optimization from the main file which currently has too many responsibilities (this would be a class with just the single cma run)
+- [ ] Add a class that runs the multiprocessing (might not work if I want to have different optimizers (more than just a CMA-ES) because I'm not sure I would allocate resources in this case but I will see)
+- [ ] Allow the user to load their own constants from their own file (saving path, importance lists) so its not just all clogging up my main file as it is currently, which is super ugly 
+- [ ] No interactive blocking until I'm down the actual project because right now it is just making it harder to work on the real code
+
+#### objective.py 
+I think this one is more ok, but these are some recommendations from ChatGPT to increase the modularity of the code so I can swap things more easily in the future
+
+I want to promote changing the scoring function, constraint suite (a different constraint suite is used if varying amounts of complexity checks are required (for example, easier and more basic checks at the start of the run to train faster))
+- [ ] Split up the constraint evaluation from the actual NeuralFoil evaluation
+- [ ] Give the constraints their own file
+
+#### cma_optimization.py 
+- [ ] The run_cma_optimization function doesn't run the cma_optimization, it only performs on step, so I need to refactor this (this is super easy to do but I just want an easy check mark ok 🥲)
+
+#### logging_auxiliary_functions.py 
+Honestly, get rid of this thing, blocking is really bad for multiprocessing 
+- [ ] Move my interactive tools and plotting into a diagnostics module (have an interactive first, which is already implemented)
+
+#### optimal_wing_state.py 
+This is used for capturing the optimal wing state for future use 
+- [ ] Split up all the functions of this file into different files (right now, the function mixes printing to console, writing file and everything)
+- [ ] Create a presentation format into a module so the capture can be used without a GUI (without user interaction) 
+
+### Things I'm going to try to do 
+Currently with multiprocessing, my computer can run 4 separate instances of the program (optimizing 4 separate airfoils at the same time) (I have more cores than that so I could squeeze it out a bit faster, but I like to use my computer while its doing its thing). It has an AMD GPU, so if I wanted to speed it up with my GPU, I would need to figure out a way to get everything to work with Open CL, which seems like a lot of work to figure out. I figured it out with Modal! GPUs don't work because Neural Foil is based on numpy which only works on CPUs. For parallization, you just need a bunch of CPUs running in parallel. Modal allows for up to 100, which is way more than anything that I will need for this project.
+- Nvidia GPU
+- More cores
+These are the two options that I think will be more feasible for me to try to get things to speed up when I have finalized all my code. I will need to figure out how to use Nvidia GPUs, but I think they will be able to do everything much much faster. On the other hand, more cores would require basically no code changes for a pretty large speed up (worst case scenario I just let my program run for 10 days and hopefully it cooks up a nice wing by the time I'm done) 
