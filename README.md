@@ -11,8 +11,8 @@ My Progress diagram, can't really show you it because then you can't see the ent
 ![Progress Diagram](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/e7c3d1151899df6fe70e1def9bad8f764783f5ca/media/progressdiagram.png)
 
 After optimizing for a single airfoil, it also creates a 3d stl file of the wing, (which is just the airfoil extruded). It can be used for 3d printing (and machining I'd imagine), but it is still just the airfoil extuded so there's nothing too special about it. 
-![Extruded wing stl displayed with pyvista] (media\Extruded Wing - No clue why its so long.png)
-![Wing in Prusa slicer] (C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDesign\media\Wing in Prusaslicer again.png)
+![media/Extruded Wing - No clue why its so long.png](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/master/media/Extruded%20Wing%20-%20No%20clue%20why%20its%20so%20long.png))
+![[Wing in Prusa slicer] (C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDesign\media\Wing in Prusaslicer again.png)](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/master/media/Wing%20in%20Prusaslicer%20again.png)
 
 
 #### Goal 
