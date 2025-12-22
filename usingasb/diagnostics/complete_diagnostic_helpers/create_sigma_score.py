@@ -22,8 +22,7 @@ def create_sigma_score_csv(output_directory, csv_filename='sigma_best_scores.csv
                         or entry.get("best")
                     )
                     if sigma is not None and best_score is not None:
-                        results.append([sigma, best_score])
-    # Write to CSV
+                        results.append([sigma, best_score])    # Write to CSV
     with open(csv_file_path, mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['Sigma', 'Best Score'])  # Write header

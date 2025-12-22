@@ -10,6 +10,11 @@ It should acheive pretty great lift, but is likely sacrificing just about everyt
 My Progress diagram, can't really show you it because then you can't see the entire thing and the image export is not very good :( Maybe I can add a video in the future....
 ![Progress Diagram](https://github.com/Licheng-Zheng/propellerandwingoptimizer/blob/e7c3d1151899df6fe70e1def9bad8f764783f5ca/media/progressdiagram.png)
 
+After optimizing for a single airfoil, it also creates a 3d stl file of the wing, (which is just the airfoil extruded). It can be used for 3d printing (and machining I'd imagine), but it is still just the airfoil extuded so there's nothing too special about it. 
+![Extruded wing stl displayed with pyvista] (media\Extruded Wing - No clue why its so long.png)
+![Wing in Prusa slicer] (C:\Users\liche\OneDrive\Desktop\PycharmProjects\PropellerDesign\media\Wing in Prusaslicer again.png)
+
+
 #### Goal 
 I want to provide the program a bunch of different parameters and conditions that the wing/propeller will be working within, and create the optimal wing/propeller design for those parameters. 
 
