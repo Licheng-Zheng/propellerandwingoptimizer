@@ -115,4 +115,4 @@ def external_collect_call(download_folder: str):
 if __name__ == "__main__":
     clear_folder(output_directory_sigma_and_best)
     clear_folder(output_directory_display)
-    download_results_local(download_folder = "optimization_results_20251206_204801")
+    download_results_local(download_folder = "optimization_results_20251230_203947")

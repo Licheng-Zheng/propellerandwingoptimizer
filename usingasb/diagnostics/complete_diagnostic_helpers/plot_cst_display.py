@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
+import shutil
 
 
 def display_and_save_cst_airfoil(cst_params, save_path, n_points_per_side=200, title="CST Airfoil Display"):
@@ -54,8 +55,16 @@ def display_and_save_cst_airfoil(cst_params, save_path, n_points_per_side=200, t
 def process_all_cst_displays(input_directory, output_directory):
     input_dir = Path(input_directory)
     output_dir = Path(output_directory)
+
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+    shutil.rmtree(r"usingasb\diagnostics\Modal_Display", ignore_errors=True)
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    dir_path = Path(r"usingasb\diagnostics\Modal_Display")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    
     for filename in sorted(input_dir.glob("*_best_parameters.json")):
         try:
             with open(filename, 'r') as f:
@@ -72,7 +81,7 @@ def process_all_cst_displays(input_directory, output_directory):
                 save_path=out_file,
                 title=f"CST Airfoil from {filename.name}"
             )
-            print(f"Saved CST Airfoil display for {filename.name} to {out_file}")
+            # print(f"Saved CST Airfoil display for {filename.name} to {out_file}")
 
         except Exception as e:
             print(f"Failed to generate plot for {filename.name}: {e}")

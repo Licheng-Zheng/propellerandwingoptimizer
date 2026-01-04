@@ -95,12 +95,10 @@ def internal_drag_coefficient_maximum(airfoil_drag, maximum=0.1, use_reward=True
         return airfoil_drag - maximum  # Return the difference as a penalty
     return 0
 
-# ... existing code ...
-
 def internal_slope_smoothness_constraint(
     cst_parameters,
-    x_start=0.05,
-    x_end=0.95,
+    x_start=0.1,
+    x_end=0.9,
     num_points=200,
     max_delta_slope=0.25,
     p_norm=2.0,
@@ -156,7 +154,45 @@ def internal_slope_smoothness_constraint(
         return 0.0
 
     if np.isinf(p_norm):
-        return np.max(violations)
+        return np.max(violations) * 5
 
-    return float(np.power(np.mean(np.power(violations, p_norm)), 1.0 / p_norm))
+    return float(np.power(np.mean(np.power(violations, p_norm)), 1.0 / p_norm)) * 5 
 
+def internal_thickness_constraint(cst_parameters, minimum_thickness=0.02, N=200, multiplier=5.0, check_from=0.05, check_to=0.95):
+    """
+    Checks the minimum thickness across the whole chord and penalizes if below minimum_thickness.
+
+    Args:
+        cst_parameters (dict): The CST parameters of the airfoil.
+        minimum_thickness (float): Minimum thickness required (fraction of chord).
+        N (int): Number of points to sample along chord.
+
+    Returns:
+        float: Penalty (0 if thickness is above minimum, positive otherwise).
+    """
+    x = np.linspace(check_from, check_to, N)
+
+    TE_thickness_upper = cst_parameters.get('TE_thickness', 0) / 2.0
+    TE_thickness_lower = cst_parameters.get('TE_thickness', 0) / 2.0
+    leading_edge_weight = cst_parameters.get("leading_edge_weight", 0)
+
+    y_u = get_kulfan_coordinates(
+        cst_parameters["upper_weights"],
+        x,
+        leading_edge_weight,
+        TE_thickness_upper,
+    )
+    y_l = get_kulfan_coordinates(
+        cst_parameters["lower_weights"],
+        x,
+        leading_edge_weight,
+        TE_thickness_lower,
+    )
+
+    thickness = y_u - y_l
+    min_thickness = np.min(thickness)
+
+    if min_thickness < minimum_thickness:
+        return (minimum_thickness - min_thickness) * multiplier
+
+    return 0.0

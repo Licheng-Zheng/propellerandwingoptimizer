@@ -119,22 +119,37 @@ def run_single_cma(run_id: int,
 
     # Optimization loop
     best_result: Optional[float] = None
+    elite_candidates: list[list[float]] = None 
+    elite_fitnesses: list[float] = None 
+
+    # I wanted to have a certain percent of the populatin as elites, but the population size calculations is a bit inaccessible, so 10 it is. I'll tweak it to see what number is better
+    elite_portion = 0.2
+    elite_length = 10
+
+
     for epoch in range(MAX_EPOCHS):
         # Check termination before doing work in this epoch
         if epoch >= MIN_EPOCHS_BEFORE_STOP and strategy.stop():
             logging.info(f"{model_name}: Early stop at epoch {epoch + 1}")
             break
 
-        best_fitness = run_cma_optimization(
+        best_fitness, candidates, fitnesses = run_cma_optimization(
             evolutionary_strategy=strategy,
             model_name=model_name,
             model_size=MODEL_SIZE,
             alpha=ALPHA,
             Re=RE,
             epoch=epoch,
+            elitist_candidates=elite_candidates,
+            elitist_fitnesses=elite_fitnesses,
+            elite_length=elite_length,
             wanted_lists=WANTED_LIST,
             importance_list=IMPORTANCE_LIST,
         )
+
+        # Assign the best elite_length of candidates and fitnesses for the next epoch 
+        elite_candidates = candidates[:elite_length]
+        elite_fitnesses = fitnesses[:elite_length]
 
         # After the epoch evaluation, check termination again to allow
         # immediate early termination when conditions are met during this epoch

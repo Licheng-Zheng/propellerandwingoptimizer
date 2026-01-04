@@ -109,7 +109,7 @@ def worker(run_id: int, parent_results_dir: str) -> dict:
 @app.local_entrypoint()
 # Launches a bunch of workers/containers 
 def launch_many(num_instances: Optional[int] = None) -> None:
-    if num_instances is None: num_instances = 10 
+    if num_instances is None: num_instances = 4
     
     parent_results_dir = _default_parent_results_dir()
     print(f"{num_instances} workers")
@@ -137,4 +137,4 @@ def launch_many(num_instances: Optional[int] = None) -> None:
 
 if __name__ == "__main__":
     with app.run():
-        launch_many()
+        launch_many(50)

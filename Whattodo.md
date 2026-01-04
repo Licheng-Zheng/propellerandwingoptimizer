@@ -5,7 +5,10 @@
     - Certain portions of the wing will have a certain lift value assigned to it, and it will create a profile for that 
     - Add linear scaling for the wing, then we can look more into the harder stuff 
 - Use servos and sheet metal (or whatever) to allow it to fit multiple different wing designs, depending on what is required in the design (this one is for when I'm a lot smarter) 
-- Add more contraints now that you have a general sense of how optimization should go 
+- Add more constraints now that you have a general sense of how optimization should go 
+    - Stronger slope constraints (I can probably just tweak the current one so the penalty is harsher) 
+- Figure out why they all converge at super different values (in terms of wing shape) Am I not searching enough area? 
+- Add the elitist function to return to the previous best after the optimization sucks for a while
 
 #### Things I've done already 
 - Parallel processing on the cloud and locally 

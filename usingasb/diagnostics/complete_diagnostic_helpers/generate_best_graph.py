@@ -31,7 +31,7 @@ def generate_best_graphs():
 
     # Glob is used to match the files ending in .json in the source directory. It finds every json file in the directory
     for json_file in sorted(source_dir.glob("*.json")):
-        target_file = output_dir / f"{json_file.stem}.png"
+        target_file = output_dir / f"{json_file.stem}_best.png"
         plot_best_fitness(json_file, save_plot=True, save_path=target_file)
     print(f"Finished generating best fitness graphs. Saved to {output_dir}")
 
@@ -47,7 +47,7 @@ def generate_sigma_graphs():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for json_file in sorted(source_dir.glob("*.json")):
-        target_file = output_dir / f"{json_file.stem}.png"
+        target_file = output_dir / f"{json_file.stem}_sigma.png"
         plot_sigma(json_file, save_plot=True, save_path=target_file)
     
     print(f"Finished generating sigma graphs. Saved to {output_dir}")
